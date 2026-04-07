@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CatGPT</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- API Key Modal -->
+  <div id="api-key-modal" class="modal-overlay">
+    <div class="modal window-raised">
+      <div class="title-bar">
+        <span class="title-text">Welcome to CatGPT</span>
+      </div>
+      <div class="modal-body">
+        <div class="modal-cat">^..^</div>
+        <p>Meow! Paste your OpenAI API key to get started.</p>
+        <p class="modal-note">Your key stays in your browser. It's never sent anywhere except OpenAI.</p>
+        <input type="password" id="api-key-input" class="input-field window-inset" placeholder="sk-..." />
+        <button id="api-key-submit" class="btn window-raised">Let's Chat!</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main App Window -->
+  <div class="app-container">
+    <div class="app-window window-raised">
+
+      <!-- Title Bar -->
+      <div class="title-bar">
+        <span class="title-text">CatGPT - Instant Meowssage</span>
+        <div class="title-buttons">
+          <button class="title-btn window-raised" id="settings-btn" title="Settings">_</button>
+          <button class="title-btn window-raised" title="Minimize">-</button>
+          <button class="title-btn window-raised close-btn" title="Close">x</button>
+        </div>
+      </div>
+
+      <!-- Main Content Area (stacked: cat on top, chat below) -->
+      <div class="main-content">
+
+        <!-- Cat Panel (top ~50% — the "video feed") -->
+        <div class="cat-panel">
+          <div class="cat-stage window-inset">
+            <div class="cat-mascot-container">
+              <img src="cat-closed.png" alt="CatGPT" class="cat-mascot" id="cat-mascot">
+            </div>
+            <div class="buddy-status">
+              <span class="status-dot online"></span>
+              <span class="buddy-name">CatGPT</span>
+              <span class="status-text">Online</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Chat Panel (bottom ~50% — the "chat sidebar") -->
+        <div class="chat-panel">
+          <div class="chat-log window-inset" id="chat-log">
+            <!-- Sample messages for styling review -->
+            <div class="message catgpt-message">
+              <div class="message-header">
+                <span class="message-sender">CatGPT</span>
+                <span class="message-time">4:02 PM</span>
+              </div>
+              <div class="message-body">Meow! Welcome to CatGPT! I'm your purrfect AI assistant. Ask me anything and I'll do my best to help... between naps, of course.</div>
+            </div>
+            <div class="message user-message">
+              <div class="message-header">
+                <span class="message-sender">You</span>
+                <span class="message-time">4:03 PM</span>
+              </div>
+              <div class="message-body">Hey CatGPT! What's the meaning of life?</div>
+            </div>
+            <div class="message catgpt-message">
+              <div class="message-header">
+                <span class="message-sender">CatGPT</span>
+                <span class="message-time">4:03 PM</span>
+              </div>
+              <div class="message-body">*stretches and yawns* Well, as a cat, I can tell you the meaning of life is pretty simple: sunny spots, warm laps, and knocking things off tables. But fur real, the meaning of life is whatever makes you purr inside. Now if you'll excuse me, it's time for my 47th nap today.</div>
+            </div>
+          </div>
+
+          <!-- Input Area -->
+          <div class="input-area">
+            <div class="input-row">
+              <input type="text" id="message-input" class="input-field window-inset" placeholder="Type a meowssage..." />
+              <button id="mic-btn" class="btn window-raised mic-btn" title="Voice input">
+                <span class="mic-icon">&#127908;</span>
+              </button>
+              <button id="send-btn" class="btn window-raised send-btn">Send</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Status Bar -->
+      <div class="status-bar window-inset">
+        <span id="status-text">Connected as: Guest | Model: gpt-4o-mini</span>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="cat-animation.js"></script>
+  <script src="speech.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
