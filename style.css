@@ -455,6 +455,10 @@ body {
    NDA Modal
    ============================================ */
 
+#nda-modal {
+  z-index: 200;
+}
+
 .nda-modal {
   max-width: 600px;
   max-height: 90vh;

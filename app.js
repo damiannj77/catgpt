@@ -53,21 +53,26 @@ function init() {
   const ndaSigned = localStorage.getItem('catgpt_nda_signed');
 
   if (!ndaSigned) {
+    // Show NDA, hide everything else
     ndaModal.classList.remove('hidden');
+    hideModal();
     document.getElementById('nda-agree').addEventListener('click', () => {
       localStorage.setItem('catgpt_nda_signed', 'true');
       ndaModal.classList.add('hidden');
-      if (!apiKey) {
+      if (apiKey) {
+        addWelcomeMessage();
+      } else {
         showModal();
       }
     });
   } else {
     ndaModal.classList.add('hidden');
-  }
-
-  if (apiKey) {
-    hideModal();
-    addWelcomeMessage();
+    if (apiKey) {
+      hideModal();
+      addWelcomeMessage();
+    } else {
+      showModal();
+    }
   }
 
   apiKeySubmit.addEventListener('click', handleApiKeySubmit);
