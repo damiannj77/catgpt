@@ -452,6 +452,53 @@ body {
 }
 
 /* ============================================
+   NDA Modal
+   ============================================ */
+
+.nda-modal {
+  max-width: 600px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.nda-body {
+  overflow-y: auto;
+  max-height: 80vh;
+}
+
+.nda-text {
+  text-align: left;
+  max-height: 55vh;
+  overflow-y: auto;
+  padding: 8px;
+  margin-bottom: 12px;
+  background: #FFFFFF;
+  border: 2px solid #404040;
+  border-right-color: #DFDFDF;
+  border-bottom-color: #DFDFDF;
+}
+
+.nda-text p {
+  font-size: 7px !important;
+  line-height: 2 !important;
+  margin-bottom: 8px !important;
+  color: #000 !important;
+}
+
+.nda-btn {
+  width: 100%;
+  padding: 12px !important;
+  background: #800000 !important;
+  color: #FFFFFF !important;
+  font-size: 7px !important;
+}
+
+.nda-btn:hover {
+  background: #A00000 !important;
+}
+
+/* ============================================
    Responsive - Smaller screens
    ============================================ */
 

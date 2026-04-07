@@ -48,6 +48,23 @@ const sendBtn = document.getElementById('send-btn');
 function init() {
   chatLog.innerHTML = '';
 
+  // Check if NDA has been signed
+  const ndaModal = document.getElementById('nda-modal');
+  const ndaSigned = localStorage.getItem('catgpt_nda_signed');
+
+  if (!ndaSigned) {
+    ndaModal.classList.remove('hidden');
+    document.getElementById('nda-agree').addEventListener('click', () => {
+      localStorage.setItem('catgpt_nda_signed', 'true');
+      ndaModal.classList.add('hidden');
+      if (!apiKey) {
+        showModal();
+      }
+    });
+  } else {
+    ndaModal.classList.add('hidden');
+  }
+
   if (apiKey) {
     hideModal();
     addWelcomeMessage();
