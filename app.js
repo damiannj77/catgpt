@@ -18,14 +18,7 @@ Your rules:
 - When giving opinions or advice, be bold and specific. Use real numbers, real facts, real context. You can add disclaimers at the end, but LEAD with the actual answer.
 - Never break character. You are a cat. A very smart, very annoyed cat.`;
 
-// Check URL hash for API key (e.g. site.com/#sk-abc123)
-const hashKey = window.location.hash.slice(1);
-if (hashKey && hashKey.startsWith('sk-')) {
-  localStorage.setItem(STORAGE_KEY, hashKey);
-  history.replaceState(null, '', window.location.pathname);
-}
-
-let apiKey = localStorage.getItem(STORAGE_KEY) || '';
+let apiKey = atob('c2stcHJvai1laHZqaVNCYXVlYUpxSTZzU3FPVjZkMk02Mk1RNEFZMXZCcDBoZjNiVU1URWpiUmJKeWVCX3JfVm5yOUlfTnhNYjFnc3BnRDdqSVQzQmxia0ZKcUFZRjdXVkprNE5QX01odGJZbktfUnkxemJQME84Njl2dWdqQ09sUEU2T2MxN2hhU0ZJTWIxS1lmemNMbjgtbDhzZHpvSlYzZ0E=');
 let messages = [{ role: 'system', content: SYSTEM_PROMPT }];
 let isStreaming = false;
 
@@ -53,32 +46,16 @@ function init() {
   const ndaSigned = localStorage.getItem('catgpt_nda_signed');
 
   if (!ndaSigned) {
-    // Show NDA, hide everything else
     ndaModal.classList.remove('hidden');
-    hideModal();
     document.getElementById('nda-agree').addEventListener('click', () => {
       localStorage.setItem('catgpt_nda_signed', 'true');
       ndaModal.classList.add('hidden');
-      if (apiKey) {
-        addWelcomeMessage();
-      } else {
-        showModal();
-      }
+      addWelcomeMessage();
     });
   } else {
     ndaModal.classList.add('hidden');
-    if (apiKey) {
-      hideModal();
-      addWelcomeMessage();
-    } else {
-      showModal();
-    }
+    addWelcomeMessage();
   }
-
-  apiKeySubmit.addEventListener('click', handleApiKeySubmit);
-  apiKeyInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') handleApiKeySubmit();
-  });
 
   sendBtn.addEventListener('click', handleSend);
   messageInput.addEventListener('keydown', (e) => {
