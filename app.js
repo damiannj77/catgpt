@@ -257,7 +257,7 @@ async function handleSend() {
   }, 2500);
 
   // Debug: check if we actually have a key
-  if (!apiKey) {
+  if (!apiKey || apiKey.length < 10) {
     clearInterval(thoughtRotation);
     bodyEl.textContent = 'Meow! No API key found. Try reloading the page with the full link.';
     bodyEl.style.color = '#CC0000';
@@ -266,8 +266,10 @@ async function handleSend() {
     return;
   }
 
+  let fullResponse = '';
+
+  // Step 1: Get chat response
   try {
-    // Step 1: Get the full response
     const chatResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -283,80 +285,79 @@ async function handleSend() {
 
     if (!chatResponse.ok) {
       const err = await chatResponse.json().catch(() => ({}));
-      if (chatResponse.status === 401) {
-        throw new Error('Invalid API key! Check your key and try again.');
-      } else if (chatResponse.status === 429) {
-        throw new Error('CatGPT is taking a catnap... too many requests. Try again in a moment.');
-      } else {
-        throw new Error(err.error?.message || `API error (${chatResponse.status})`);
-      }
+      clearInterval(thoughtRotation);
+      bodyEl.textContent = `Meow! API error ${chatResponse.status}: ${err.error?.message || 'Unknown error'}`;
+      bodyEl.style.color = '#CC0000';
+      isStreaming = false;
+      sendBtn.textContent = 'Send';
+      return;
     }
 
     const chatData = await chatResponse.json();
-    const fullResponse = chatData.choices?.[0]?.message?.content || 'Meow?';
-
+    fullResponse = chatData.choices?.[0]?.message?.content || 'Meow?';
     messages.push({ role: 'assistant', content: fullResponse });
-
-    // Step 2: Try TTS audio — if it fails for any reason, just show the text
-    let audioPlayed = false;
-    try {
-      const ttsResponse = await fetch('https://api.openai.com/v1/audio/speech', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`
-        },
-        body: JSON.stringify({
-          model: 'tts-1',
-          input: fullResponse,
-          voice: 'shimmer',
-          response_format: 'mp3'
-        })
-      });
-
-      if (ttsResponse.ok) {
-        const audioData = await ttsResponse.arrayBuffer();
-        const ctx = getAudioContext();
-        if (ctx.state === 'suspended') await ctx.resume();
-        const audioBuffer = await ctx.decodeAudioData(audioData);
-
-        const source = ctx.createBufferSource();
-        source.buffer = audioBuffer;
-        createCartoonCatChain(ctx, source);
-
-        const playDurationMs = (audioBuffer.duration / 1.5) * 1000;
-
-        clearInterval(thoughtRotation);
-        bodyEl.textContent = '';
-        startTalking();
-        source.start(0);
-        typeTextSynced(bodyEl, fullResponse, playDurationMs);
-
-        source.onended = () => {
-          stopTalking();
-        };
-
-        audioPlayed = true;
-      }
-    } catch (e) {
-      console.warn('TTS/audio failed:', e);
-    }
-
-    // Fallback: if audio didn't play, just type the text
-    if (!audioPlayed) {
-      clearInterval(thoughtRotation);
-      bodyEl.textContent = '';
-      startTalking();
-      await typeTextSynced(bodyEl, fullResponse, fullResponse.length * 40);
-      stopTalking();
-    }
 
   } catch (error) {
     clearInterval(thoughtRotation);
-    bodyEl.textContent = `Meow! Something went wrong... ${error.message || error}`;
+    bodyEl.textContent = `Meow! Chat failed: ${error.message || error}`;
     bodyEl.style.color = '#CC0000';
-    console.error('CatGPT error:', error);
+    isStreaming = false;
+    sendBtn.textContent = 'Send';
+    return;
   }
+
+  // Step 2: Try TTS audio — if it fails, just show text
+  try {
+    const ttsResponse = await fetch('https://api.openai.com/v1/audio/speech', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`
+      },
+      body: JSON.stringify({
+        model: 'tts-1',
+        input: fullResponse,
+        voice: 'shimmer',
+        response_format: 'mp3'
+      })
+    });
+
+    if (ttsResponse.ok) {
+      const audioData = await ttsResponse.arrayBuffer();
+      const ctx = getAudioContext();
+      if (ctx.state === 'suspended') await ctx.resume();
+      const audioBuffer = await ctx.decodeAudioData(audioData);
+
+      const source = ctx.createBufferSource();
+      source.buffer = audioBuffer;
+      createCartoonCatChain(ctx, source);
+
+      const playDurationMs = (audioBuffer.duration / 1.5) * 1000;
+
+      clearInterval(thoughtRotation);
+      bodyEl.textContent = '';
+      startTalking();
+      source.start(0);
+      typeTextSynced(bodyEl, fullResponse, playDurationMs);
+
+      source.onended = () => {
+        stopTalking();
+      };
+
+      isStreaming = false;
+      sendBtn.textContent = 'Send';
+      return;
+    }
+  } catch (e) {
+    console.warn('TTS failed, falling back to text:', e);
+  }
+
+  // Fallback: no audio, just type the text
+  clearInterval(thoughtRotation);
+  bodyEl.textContent = '';
+  startTalking();
+  await typeTextSynced(bodyEl, fullResponse, fullResponse.length * 40);
+  stopTalking();
 
   isStreaming = false;
   sendBtn.textContent = 'Send';
