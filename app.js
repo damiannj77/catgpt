@@ -256,6 +256,16 @@ async function handleSend() {
     bodyEl.innerHTML = `<span class="thinking">${catThoughts[thoughtIndex]}</span>`;
   }, 2500);
 
+  // Debug: check if we actually have a key
+  if (!apiKey) {
+    clearInterval(thoughtRotation);
+    bodyEl.textContent = 'Meow! No API key found. Try reloading the page with the full link.';
+    bodyEl.style.color = '#CC0000';
+    isStreaming = false;
+    sendBtn.textContent = 'Send';
+    return;
+  }
+
   try {
     // Step 1: Get the full response
     const chatResponse = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -343,8 +353,9 @@ async function handleSend() {
 
   } catch (error) {
     clearInterval(thoughtRotation);
-    bodyEl.textContent = `Meow! Something went wrong... ${error.message}`;
+    bodyEl.textContent = `Meow! Something went wrong... ${error.message || error}`;
     bodyEl.style.color = '#CC0000';
+    console.error('CatGPT error:', error);
   }
 
   isStreaming = false;
