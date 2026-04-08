@@ -287,51 +287,59 @@ async function handleSend() {
 
     messages.push({ role: 'assistant', content: fullResponse });
 
-    // Step 2: Get TTS audio
-    const ttsResponse = await fetch('https://api.openai.com/v1/audio/speech', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`
-      },
-      body: JSON.stringify({
-        model: 'tts-1',
-        input: fullResponse,
-        voice: 'shimmer',
-        response_format: 'mp3'
-      })
-    });
+    // Step 2: Try TTS audio — if it fails for any reason, just show the text
+    let audioPlayed = false;
+    try {
+      const ttsResponse = await fetch('https://api.openai.com/v1/audio/speech', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`
+        },
+        body: JSON.stringify({
+          model: 'tts-1',
+          input: fullResponse,
+          voice: 'shimmer',
+          response_format: 'mp3'
+        })
+      });
 
-    if (!ttsResponse.ok) {
-      clearInterval(thoughtRotation);
-      bodyEl.textContent = '';
-      await typeTextSynced(bodyEl, fullResponse, fullResponse.length * 40);
-      isStreaming = false;
-      sendBtn.textContent = 'Send';
-      return;
+      if (ttsResponse.ok) {
+        const audioData = await ttsResponse.arrayBuffer();
+        const ctx = getAudioContext();
+        if (ctx.state === 'suspended') await ctx.resume();
+        const audioBuffer = await ctx.decodeAudioData(audioData);
+
+        const source = ctx.createBufferSource();
+        source.buffer = audioBuffer;
+        createCartoonCatChain(ctx, source);
+
+        const playDurationMs = (audioBuffer.duration / 1.5) * 1000;
+
+        clearInterval(thoughtRotation);
+        bodyEl.textContent = '';
+        startTalking();
+        source.start(0);
+        typeTextSynced(bodyEl, fullResponse, playDurationMs);
+
+        source.onended = () => {
+          stopTalking();
+        };
+
+        audioPlayed = true;
+      }
+    } catch (e) {
+      console.warn('TTS/audio failed:', e);
     }
 
-    const audioData = await ttsResponse.arrayBuffer();
-    const ctx = getAudioContext();
-    if (ctx.state === 'suspended') await ctx.resume();
-    const audioBuffer = await ctx.decodeAudioData(audioData);
-
-    // Step 3: Play audio, animate mouth, and type text ALL at the same time
-    const source = ctx.createBufferSource();
-    source.buffer = audioBuffer;
-    createCartoonCatChain(ctx, source);
-
-    const playDurationMs = (audioBuffer.duration / 1.5) * 1000;
-
-    clearInterval(thoughtRotation);
-    bodyEl.textContent = '';
-    startTalking();
-    source.start(0);
-    typeTextSynced(bodyEl, fullResponse, playDurationMs);
-
-    source.onended = () => {
+    // Fallback: if audio didn't play, just type the text
+    if (!audioPlayed) {
+      clearInterval(thoughtRotation);
+      bodyEl.textContent = '';
+      startTalking();
+      await typeTextSynced(bodyEl, fullResponse, fullResponse.length * 40);
       stopTalking();
-    };
+    }
 
   } catch (error) {
     clearInterval(thoughtRotation);
